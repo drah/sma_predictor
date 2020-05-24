@@ -1,4 +1,3 @@
-
 class SPY:
   def __init__(self, data_path):
     self.data_path = data_path
@@ -25,27 +24,28 @@ class SPY:
   def data(self):
     return self._examples
 
-class Spliter:
-  def __init__(self):
-    pass
+def generate_SMA(data, target_index, days):
+  sma = []
+  cur_days = 0
+  cur_sum = 0
+  while cur_days < days and cur_days < len(data):
+    cur_sum += data[cur_days][target_index]
+    cur_days += 1
+    sma.append(cur_sum / cur_days)
 
-  def split_interval(self, data, ratios: [float]):
-    total = len(data)
-    intervals = []
-    start = 0
-    for i, ratio in enumerate(ratios):
-      n_data = int(total * ratio)
-      intervals.append([start, start + n_data])
-      start += n_data
+  while cur_days < len(data):
+    cur_sum += data[cur_days][target_index] - data[cur_days - days][target_index]
+    sma.append(cur_sum / days)
+    cur_days += 1
 
-    if intervals[-1][1] != total:
-      intervals[-1][1] = total
-
-    return [data[start:end] for start, end in intervals]
+  return sma
 
 if __name__ == '__main__':
-  spy = SPY('./SPY.csv')
-  spliter = Spliter()
-  train, val, test = spliter.split_interval(spy.data, [0.7, 0.15, 0.15])
-  print(len(train), len(val), len(test))
-  
+  def test():
+    spy = SPY('./SPY.csv')
+    data = [[i] for i in range(10)]
+    labels = generate_SMA(data, 0, 2)
+    assert labels[0] == 0
+    for i in range(1, len(labels)):
+      assert labels[i] == (data[i][0] + data[i-1][0]) * 0.5
+  test()
