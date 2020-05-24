@@ -1,5 +1,5 @@
 import tensorflow as tf
-import helpers
+from . import helpers
 
 class Base:
   def __init__(self):
@@ -11,14 +11,35 @@ class Base:
         'in': None,
         'out': None,
         'train': None,
-        # here
+        'loss': None,
+        'metric': None,
         'global_step': None}
+    self._train_run = {
+      'global_step': self._node['global_step'],
+      'train': self._node['train'],
+      'loss': self._node['loss'],
+      'metric': self._node['metric']}
+    self._validate_run = {
+      'loss': self._node['loss'],
+      'metric': self._node['metric']}
+
+  def fit(self, train_x, train_y, val_x, val_y):
+    pass
 
   def train(self, x, y):
-    self.sess.run([self._node['global_step'], self._node['train'])
+    return self.sess.run(
+        self._train_run,
+        {self._node['in']: x, self._node['out']: y})
+
+  def validate(self, x, y):
+    return self.sess.run(
+        self._validate_run,
+        {self._node['in']: x, self._node['out']: y})
 
   def predict(self, x):
-    raise NotImplementedError
+    return self.sess.run(
+        self._node['out'],
+        {self._node['in']: x})
 
   def _build(self):
     raise NotImplementedError
@@ -43,4 +64,4 @@ class Base:
     if self._ckpt is not None:
       self.saver.restore(self.sess, self._ckpt)
     else:
-      self.sess
+      self.sess.run(tf.global_variables_initializer())

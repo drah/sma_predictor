@@ -46,3 +46,9 @@ def get_saver(var_list=None, max_to_keep=10):
 def handle_dir(path):
   if not os.path.exists(path):
     os.mkdir(path)
+
+def l2_loss(label, pred):
+  return tf.reduce_mean(tf.squared_difference(label, pred))
+
+def metric(label, pred):
+  return tf.sqrt(l2_loss(label, pred))

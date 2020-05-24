@@ -1,6 +1,6 @@
 import tensorflow as tf
-import helpers
-from base import Base
+from . import helpers
+from .base import Base
 
 class NNRegression(Base):
   def __init__(self, input_dim, ckpt=None, save_dir='log', name='NNRegression'):
@@ -24,14 +24,19 @@ class NNRegression(Base):
       output = net
 
     with tf.variable_scope('training'):
-      label = tf.placeholder(tf.float32, shape=[None, 1])
-      l2_diff = tf.reduce_mean(tf.squared_difference(label, output))
-      global_step, train_step = helpers.optimize(l2_diff)
+      label = tf.expand_dims(tf.placeholder(tf.float32, shape=[None]), 1)
+      l2_loss = helpers.l2_loss(label, output)
+      global_step, train_step = helpers.optimize(l2_loss)
+
+    with tf.name_scope('metric'):
+      metric = helpers.metric(label, output)
 
     self._node['in'] = input
     self._node['out'] = output
     self._node['global_step'] = global_step
     self._node['train'] = train_step
+    self._node['loss'] = l2_loss
+    self._node['metric'] = metric
 
 if __name__ == '__main__':
   nn_reg = NNRegression(5)
