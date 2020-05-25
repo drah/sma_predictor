@@ -16,8 +16,16 @@ def main(args):
   feature_engineering.handle_features(test.data)
 
   model = models.factory.get_model(args.model)(train.feature_size, args.ckpt, args.save_dir)
-  model.fit(train.data, train.labels, val.data, val.labels)
-  model.validate(test.data, test.labels)
+  model.fit(
+      train=train,
+      val=val,
+      start_step=args.start_step,
+      end_step=args.end_step,
+      batch_size=args.batch_size,
+      val_step=args.val_step,
+      val_batch_size=args.val_batch_size,
+      es_tolerance=args.es_tolerance)
+  model.evaluation(test, args.batch_size)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('sma_predictor')
@@ -39,6 +47,18 @@ if __name__ == '__main__':
       help='checkpoint of model')
   parser.add_argument('--save_dir', dest='save_dir', type=str, default='./NNR_logs',
       help='the directory for saving training logs and checkpoints')
+  parser.add_argument('--start_step', dest='start_step', type=int, default=0,
+      help='the number from which training step starts')
+  parser.add_argument('--end_step', dest='end_step', type=int, default=100000,
+      help='the number from which training step ends')
+  parser.add_argument('--batch_size', dest='batch_size', type=int, default=100,
+      help='the size of each batch for training')
+  parser.add_argument('--val_step', dest='val_step', type=int, default=100,
+      help='the number of steps for validation once')
+  parser.add_argument('--val_batch_size', dest='val_batch_size', type=int, default=100,
+      help='the size of each batch for validation')
+  parser.add_argument('--es_tolerance', dest='es_tolerance', type=int, default=10,
+      help='early stopping tolerance')
 
   args = parser.parse_args()
   main(args)
