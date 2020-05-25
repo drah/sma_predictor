@@ -52,3 +52,28 @@ def l2_loss(label, pred):
 
 def metric(label, pred):
   return tf.sqrt(l2_loss(label, pred))
+
+def batch_norm(node, is_train, decay_rate=0.996, name='batch_norm'):
+  # not tested
+  depth = node.shape[-1]
+  with tf.variable_scope(name):
+    moving_mean = tf.get_variable('moving_mean', [depth], initializer=tf.initializers.zeros(), trainable=False)
+    moving_var = tf.get_variable('moving_var', [depth], initializer=tf.initializers.ones(), trainable=False)
+    batch_mean, batch_var = tf.nn.moments(node, [i for i in range(len(node.shape)-1)])
+    scale = tf.constant(1.)
+    offset = tf.constant(0.)
+    eps = tf.constant(1e-3)
+
+    inc_rate = 1. - decay_rate
+    update_moving_mean = tf.assign(moving_mean, moving_mean * decay_rate + batch_mean * inc_rate)
+    update_moving_var = tf.assign(moving_var, moving_var * decay_rate + batch_var * inc_rate)
+
+    def is_train_true():
+      with tf.control_dependencies([update_moving_mean, update_moving_var]):
+        return tf.nn.batch_normalization(node, batch_mean, batch_var, offset, scale, eps)
+
+    def is_train_false():
+      return tf.nn.batch_normalization(node, moving_mean, moving_var, offset, scale, eps)
+    
+    node = tf.cond(is_train, is_train_true, is_train_false)
+  return node

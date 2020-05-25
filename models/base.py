@@ -1,3 +1,4 @@
+from pprint import pprint
 import tensorflow as tf
 from . import helpers
 
@@ -23,7 +24,30 @@ class Base:
       'loss': self._node['loss'],
       'metric': self._node['metric']}
 
-  def fit(self, train_x, train_y, val_x, val_y):
+  def fit(
+      self, train, val, start_step=0, end_step=100000,
+      batch_size=100, val_step=100, val_batch_size=100, es_tolerance=10):
+    best_metric = float('-inf')
+    miss = 0
+    for step in range(start_step, end_step):
+      batch_x, batch_y = train.get(batch_size)
+      train_log = self.train(batch_x, batch_y)
+      if step % val_step == 0:
+        val_batch_x, val_batch_y = val.get(val_batch_size)
+        val_log = self.validate(val_batch_x, val_batch_y)
+        pprint(train_log)
+        pprint(val_log)
+        print()
+        if val_log['metric'] > best_metric:
+          best_metric = val_log['metric']
+          miss = 0
+        else:
+          miss += 1
+          if miss == es_tolerance:
+            print("Early stopping at step %d" % step)
+            break
+
+  def evaluation(self, data, batch_size=100):
     pass
 
   def train(self, x, y):
