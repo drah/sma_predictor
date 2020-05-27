@@ -11,18 +11,19 @@ class Base:
     self._node = {
         'in': None,
         'out': None,
+        'label': None,
         'train': None,
         'loss': None,
         'metric': None,
         'global_step': None}
-    self._train_run = {
-      'global_step': self._node['global_step'],
-      'train': self._node['train'],
-      'loss': self._node['loss'],
-      'metric': self._node['metric']}
-    self._validate_run = {
-      'loss': self._node['loss'],
-      'metric': self._node['metric']}
+    # self._train_run = {
+    #   'global_step': self._node['global_step'],
+    #   'train': self._node['train'],
+    #   'loss': self._node['loss'],
+    #   'metric': self._node['metric']}
+    # self._validate_run = {
+    #   'loss': self._node['loss'],
+    #   'metric': self._node['metric']}
 
   def fit(
       self, train, val, start_step=0, end_step=100000,
@@ -47,18 +48,22 @@ class Base:
             print("Early stopping at step %d" % step)
             break
 
-  def evaluation(self, data, batch_size=100):
-    pass
+  def evaluation(self, data):
+    print(self.validate(*data.get(len(data))))
 
   def train(self, x, y):
     return self.sess.run(
-        self._train_run,
-        {self._node['in']: x, self._node['out']: y})
+        {'global_step': self._node['global_step'],
+        'train': self._node['train'],
+        'loss': self._node['loss'],
+        'metric': self._node['metric']},
+        {self._node['in']: x, self._node['label']: y})
 
   def validate(self, x, y):
     return self.sess.run(
-        self._validate_run,
-        {self._node['in']: x, self._node['out']: y})
+        {'loss': self._node['loss'],
+        'metric': self._node['metric']},
+        {self._node['in']: x, self._node['label']: y})
 
   def predict(self, x):
     return self.sess.run(
@@ -84,7 +89,7 @@ class Base:
   def save(self):
     self.saver.save(self.sess, self._save_dir + 'ckpt')
 
-  def _init_session(self):
+  def init_session(self):
     if self._ckpt is not None:
       self.saver.restore(self.sess, self._ckpt)
     else:

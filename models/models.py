@@ -13,7 +13,6 @@ class NNRegression(Base):
     self._build()
 
   def _build(self):
-    # input output
     with tf.variable_scope(self._name):
       input = tf.placeholder(tf.float32, shape=[None, self._in_dim])
       net = input
@@ -24,8 +23,8 @@ class NNRegression(Base):
       output = net
 
     with tf.variable_scope('training'):
-      label = tf.expand_dims(tf.placeholder(tf.float32, shape=[None]), 1)
-      l2_loss = helpers.l2_loss(label, output)
+      label = tf.placeholder(tf.float32, shape=[None])
+      l2_loss = helpers.l2_loss(tf.expand_dims(label, 1), output)
       global_step, train_step = helpers.optimize(l2_loss)
 
     with tf.name_scope('metric'):
@@ -33,6 +32,7 @@ class NNRegression(Base):
 
     self._node['in'] = input
     self._node['out'] = output
+    self._node['label'] = label
     self._node['global_step'] = global_step
     self._node['train'] = train_step
     self._node['loss'] = l2_loss
