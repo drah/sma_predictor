@@ -1,6 +1,6 @@
 import argparse
 import data_pipeline
-import feature_engineering
+import features
 import models
 
 import reader
@@ -11,11 +11,16 @@ def main(args):
   train, val, test = data_pipeline.split_interval(
       spy.data, labels, [args.train_ratio, args.val_ratio, args.test_ratio])
 
-  feature_engineering.handle_features(train.data)
-  feature_engineering.handle_features(val.data)
-  feature_engineering.handle_features(test.data)
+  features.handle_features(train.data)
+  features.handle_features(val.data)
+  features.handle_features(test.data)
+  stat = features.get_stat(train.data)
+  features.standardize(train.data, stat['mean'], stat['std'])
+  features.standardize(val.data, stat['mean'], stat['std'])
+  features.standardize(test.data, stat['mean'], stat['std'])
 
   model = models.factory.get_model(args.model)(train.feature_size, args.ckpt, args.save_dir)
+  model.init_session()
   model.fit(
       train=train,
       val=val,
@@ -25,7 +30,7 @@ def main(args):
       val_step=args.val_step,
       val_batch_size=args.val_batch_size,
       es_tolerance=args.es_tolerance)
-  model.evaluation(test, args.batch_size)
+  model.evaluation(test)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('sma_predictor')
