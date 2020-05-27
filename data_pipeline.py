@@ -9,9 +9,16 @@ class Data:
   def get(self, batch_size):
     self.i += batch_size
     if self.i > len(self.data):
-      self.data, self.labels = shuffle(self.data, self.labels)
+      self._data, self._labels = shuffle(self._data, self._labels)
       self.i = batch_size
     return self.data[(self.i - batch_size): self.i], self.labels[(self.i - batch_size): self.i]
+
+  def __iter__(self):
+    for data, labels in zip(self.data, self.labels):
+      yield data, labels
+
+  def __len__(self):
+    return len(self.data)
 
   @property
   def data(self):
