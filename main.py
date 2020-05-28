@@ -11,25 +11,22 @@ def main(args):
   train, val, test = data_pipeline.split_interval(
       spy.data, labels, [args.train_ratio, args.val_ratio, args.test_ratio])
 
-  features.handle_features(train.data)
-  features.handle_features(val.data)
-  features.handle_features(test.data)
-  stat = features.get_stat(train.data)
-  features.standardize(train.data, stat['mean'], stat['std'])
-  features.standardize(val.data, stat['mean'], stat['std'])
-  features.standardize(test.data, stat['mean'], stat['std'])
+  stat = features.handle_features(train.data)
+  features.handle_features(val.data, stat['mean'], stat['std'])
+  features.handle_features(test.data, stat['mean'], stat['std'])
 
   model = models.factory.get_model(args.model)(train.feature_size, args.ckpt, args.save_dir)
   model.init_session()
-  model.fit(
-      train=train,
-      val=val,
-      start_step=args.start_step,
-      end_step=args.end_step,
-      batch_size=args.batch_size,
-      val_step=args.val_step,
-      val_batch_size=args.val_batch_size,
-      es_tolerance=args.es_tolerance)
+  if args.phase == 1:
+    model.fit(
+        train=train,
+        val=val,
+        start_step=args.start_step,
+        end_step=args.end_step,
+        batch_size=args.batch_size,
+        val_step=args.val_step,
+        val_batch_size=args.val_batch_size,
+        es_tolerance=args.es_tolerance)
   model.evaluation(test)
 
 if __name__ == '__main__':
@@ -62,8 +59,10 @@ if __name__ == '__main__':
       help='the number of steps for validation once')
   parser.add_argument('--val_batch_size', dest='val_batch_size', type=int, default=100,
       help='the size of each batch for validation')
-  parser.add_argument('--es_tolerance', dest='es_tolerance', type=int, default=10,
+  parser.add_argument('--es_tolerance', dest='es_tolerance', type=int, default=100,
       help='early stopping tolerance')
+  parser.add_argument('--phase', dest='phase', type=int, default=1,
+      help='1: fit and evaluation, 0: evaluation')
 
   args = parser.parse_args()
   main(args)
