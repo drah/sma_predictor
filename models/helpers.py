@@ -21,7 +21,7 @@ def conv2d(node, n_filter, k_size, strides, padding, name=None):
 
   return node
 
-def optimize(loss, learning_rate=1e-3, decay_steps=10000, decay_rate=0.96, var_list=None, name=None):
+def optimize(loss, learning_rate=2e-4, decay_steps=10000, decay_rate=0.96, var_list=None, name=None):
   with tf.variable_scope(name or 'optimizer'):
     global_step = get_global_step()
     dlr = tf.train.exponential_decay(learning_rate, global_step, decay_steps, decay_rate, True)
