@@ -27,7 +27,11 @@ def main(args):
         val_step=args.val_step,
         val_batch_size=args.val_batch_size,
         es_tolerance=args.es_tolerance)
-  model.evaluation(test)
+    model.evaluation(test)
+  elif args.phase == 0:
+    model.evaluation(test)
+  elif args.phase == 2:
+    model.predict(test)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('sma_predictor')
@@ -47,7 +51,7 @@ if __name__ == '__main__':
       help='the name of the model')
   parser.add_argument('--ckpt', dest='ckpt', type=str, default=None,
       help='checkpoint of model')
-  parser.add_argument('--save_dir', dest='save_dir', type=str, default='./NNR_logs',
+  parser.add_argument('--save_dir', dest='save_dir', type=str, default='',
       help='the directory for saving training logs and checkpoints')
   parser.add_argument('--start_step', dest='start_step', type=int, default=0,
       help='the number from which training step starts')
@@ -65,4 +69,6 @@ if __name__ == '__main__':
       help='1: fit and evaluation, 0: evaluation')
 
   args = parser.parse_args()
+  if not args.save_dir:
+    args.save_dir = args.model + '_logs'
   main(args)
