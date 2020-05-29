@@ -2,6 +2,7 @@
 
 ## Usage
 
+Put the data to this root directory, or use --data <path_to_data> to specify the path to the data.
 ### Train and Evaluation
 `python3 main.py`
 
