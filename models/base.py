@@ -16,7 +16,8 @@ class Base:
         'train': None,
         'loss': None,
         'metric': None,
-        'global_step': None}
+        'global_step': None,
+        'is_train': None}
     # self._train_run = {
     #   'global_step': self._node['global_step'],
     #   'train': self._node['train'],
@@ -52,25 +53,44 @@ class Base:
             break
     print("best validation metric: %.2f" % best_metric)
     
-
   def evaluation(self, data):
     print(self.validate(*data.get(len(data))))
 
+  def predict(self, data):
+    results = self.run_output(data.get(len(data))[0])
+    save_path = os.path.join(self._save_dir, 'pred.txt')
+    with open(save_path, 'w') as f:
+      for pred in results:
+        f.write(' '.join(str(i) for i in pred) + '\n')
+    print("predicted result is at ", save_path)
+
   def train(self, x, y):
+    feed = {self._node['in']: x, self._node['label']: y}
+    if self._node['is_train'] is not None:
+      feed[self._node['is_train']] = True
+
     return self.sess.run(
         {'global_step': self._node['global_step'],
         'train': self._node['train'],
         'loss': self._node['loss'],
         'metric': self._node['metric']},
-        {self._node['in']: x, self._node['label']: y})
+        feed)
 
   def validate(self, x, y):
+    feed = {self._node['in']: x, self._node['label']: y}
+    if self._node['is_train'] is not None:
+      feed[self._node['is_train']] = False
+
     return self.sess.run(
         {'loss': self._node['loss'],
         'metric': self._node['metric']},
-        {self._node['in']: x, self._node['label']: y})
+        feed)
 
-  def predict(self, x):
+  def run_output(self, x):
+    feed = {self._node['in']: x}
+    if self._node['is_train'] is not None:
+      feed[self._node['is_train']] = False
+
     return self.sess.run(
         self._node['out'],
         {self._node['in']: x})

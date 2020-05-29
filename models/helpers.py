@@ -21,11 +21,11 @@ def conv2d(node, n_filter, k_size, strides, padding, name=None):
 
   return node
 
-def optimize(loss, learning_rate=2e-4, decay_steps=10000, decay_rate=0.96, var_list=None, name=None):
+def optimize(loss, learning_rate=2e-4, decay_steps=10000, decay_rate=0.9, var_list=None, name=None):
   with tf.variable_scope(name or 'optimizer'):
     global_step = get_global_step()
     dlr = tf.train.exponential_decay(learning_rate, global_step, decay_steps, decay_rate, True)
-    opt = tf.train.AdamOptimizer(dlr)
+    opt = tf.train.RMSPropOptimizer(dlr)
     train_step = opt.minimize(loss, global_step, var_list)
   return global_step, train_step
 
@@ -53,7 +53,7 @@ def l2_loss(label, pred):
 def metric(label, pred):
   return tf.sqrt(l2_loss(label, pred))
 
-def batch_norm(node, is_train, decay_rate=0.996, name='batch_norm'):
+def batch_norm(node, is_train, decay_rate=0.96, name='batch_norm'):
   # not tested
   depth = node.shape[-1]
   with tf.variable_scope(name):
